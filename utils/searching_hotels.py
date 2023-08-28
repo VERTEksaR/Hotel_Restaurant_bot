@@ -132,6 +132,7 @@ async def find_and_show_hotels(message: Message, state: FSMContext) -> None:
             else:
                 logger.info('Поиск завершен успешно')
                 await message.answer('Поиск завершен')
+                await state.finish()
                 break
     else:
         logger.error('json-объект с отелями не получен')
