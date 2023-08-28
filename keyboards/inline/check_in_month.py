@@ -9,6 +9,8 @@ from keyboards.inline.check_in_day import day_button, select_day
 
 current_year = time.localtime().tm_year
 month_button = InlineKeyboardMarkup()
+months = [(1, 'Январь'), (2, 'Февраль'), (3, 'Март'), (4, 'Апрель'), (5, 'Май'), (6, 'Июнь'),
+          (7, 'Июль'), (8, 'Август'), (9, 'Сентябрь'), (10, 'Октябрь'), (11, 'Ноябрь'), (12, 'Декабрь')]
 
 
 async def select_month(state: FSMContext, choice: str) -> None:
@@ -30,11 +32,12 @@ async def select_month(state: FSMContext, choice: str) -> None:
             year = int(data['visiting_rest_year'])
 
         if year == current_year:
-            for month in range(current_month, 13):
-                month_button.add(InlineKeyboardButton(f'{month}', callback_data=str(month)))
+            for month, name in months:
+                if month >= current_month:
+                    month_button.add(InlineKeyboardButton(f'{name}', callback_data=str(month)))
         else:
-            for month in range(1, current_month + 1):
-                month_button.add(InlineKeyboardButton(f'{month}', callback_data=str(month)))
+            for month, name in months:
+                month_button.add(InlineKeyboardButton(f'{name}', callback_data=str(month)))
 
     if choice.endswith('Отель'):
         await UserData.check_in_month.set()

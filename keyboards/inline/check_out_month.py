@@ -8,6 +8,8 @@ from keyboards.inline.check_out_day import select_day, day_button
 
 
 month_button = InlineKeyboardMarkup()
+months = [(1, 'Январь'), (2, 'Февраль'), (3, 'Март'), (4, 'Апрель'), (5, 'Май'), (6, 'Июнь'),
+          (7, 'Июль'), (8, 'Август'), (9, 'Сентябрь'), (10, 'Октябрь'), (11, 'Ноябрь'), (12, 'Декабрь')]
 
 
 async def select_month(state: FSMContext) -> None:
@@ -26,24 +28,24 @@ async def select_month(state: FSMContext) -> None:
         check_in_day = int(data['check_in_day'])
         if (check_in_month in [1, 3, 5, 7, 8, 10, 12]) and (check_in_day > 1):
             if check_in_month == 12:
-                btn1 = InlineKeyboardButton(f'{check_in_month}',
+                btn1 = InlineKeyboardButton(f'{months[11][1]}',
                                             callback_data='outmonth1')
-                btn2 = InlineKeyboardButton(f'{check_in_month - 11}',
+                btn2 = InlineKeyboardButton(f'{months[0][1]}',
                                             callback_data='outmonth1.5')
             else:
-                btn1 = InlineKeyboardButton(f'{check_in_month}',
+                btn1 = InlineKeyboardButton(f'{months[check_in_month - 1][1]}',
                                             callback_data='outmonth1')
-                btn2 = InlineKeyboardButton(f'{check_in_month + 1}',
+                btn2 = InlineKeyboardButton(f'{months[check_in_month][1]}',
                                             callback_data='outmonth2')
             month_button.add(btn1, btn2)
         elif (check_in_month in [1, 3, 5, 7, 8, 10, 12]) and (check_in_day == 1):
-            btn1 = InlineKeyboardButton(f'{check_in_month}',
+            btn1 = InlineKeyboardButton(f'{months[check_in_month - 1][1]}',
                                         callback_data='outmonth1')
             month_button.add(btn1)
         elif check_in_month in [2, 4, 6, 9, 11]:
-            btn1 = InlineKeyboardButton(f'{check_in_month}',
+            btn1 = InlineKeyboardButton(f'{months[check_in_month - 1][1]}',
                                         callback_data='outmonth1')
-            btn2 = InlineKeyboardButton(f'{check_in_month + 1}',
+            btn2 = InlineKeyboardButton(f'{months[check_in_month][1]}',
                                         callback_data='outmonth2')
             month_button.add(btn1, btn2)
     await UserData.check_out_month.set()
