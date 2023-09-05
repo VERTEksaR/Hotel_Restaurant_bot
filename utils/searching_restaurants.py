@@ -17,24 +17,33 @@ headers = {
 }
 
 
-async def find_and_show_restaurants(message: Message, state: FSMContext) -> None:
+async def find_and_show_restaurants(message: Message, state: FSMContext, function: str) -> None:
     """
 
     Функция для поиска ресторанов по тем критериям, что пользователь
     ввел в машину состояний.
 
     :param message: (Message) сообщение, с которым работает данная функция;
-    :param state: (FSMContext) ссылка на машину состояний.
+    :param state: (FSMContext) ссылка на машину состояний;
+    :param function: (str) функция, выбранная пользователем.
     :return: None
 
     """
     async with state.proxy() as data:
+        if function == 'low':
+            price = '10953'
+            data_crit = '_low'
+            logger.info('Производится поиск ресторанов по сортировке: дешевая кухня')
+        elif function == 'high':
+            price = '10954'
+            data_crit = '_high'
+            logger.info('Производится поиск ресторанов по сортировке: высокая кухня')
         payload = {
-            "geoId": int(data['geoId']),
-            "partySize": int(data['group_size']),
-            "reservationTime": f'{data["visiting_rest_year"]}-{data["visiting_rest_month"]}-'
-                               f'{data["visiting_rest_day"]}T{data["visiting_rest_hour"]}:'
-                               f'{data["visiting_rest_minute"]}',
+            "geoId": int(data[f'geoId{data_crit}']),
+            "partySize": int(data[f'group_size{data_crit}']),
+            "reservationTime": f'{data[f"visiting_rest_year{data_crit}"]}-{data[f"visiting_rest_month{data_crit}"]}-'
+                               f'{data[f"visiting_rest_day{data_crit}"]}T{data[f"visiting_rest_hour{data_crit}"]}:'
+                               f'{data[f"visiting_rest_minute{data_crit}"]}',
             "sort": "RELEVANCE",
             "sortOrder": "asc",
             "filters": [
@@ -44,7 +53,7 @@ async def find_and_show_restaurants(message: Message, state: FSMContext) -> None
                 },
                 {
                     "id": "price",
-                    "value": ["10953"]
+                    "value": [price]
                 }
             ],
             "boundingBox": {
@@ -68,15 +77,17 @@ async def find_and_show_restaurants(message: Message, state: FSMContext) -> None
         count = 0
 
         for restaurant in restaurants.values():
-            if count < int(data['number_of_restaurants']):
+            if count < int(data[f'number_of_restaurants{data_crit}']):
                 count += 1
                 details_url = "https://travel-advisor.p.rapidapi.com/restaurants/v2/get-details"
                 details_payload = {
                     "contentId": restaurant['id'],
-                    "reservationTime": f'{data["visiting_rest_year"]}-{data["visiting_rest_month"]}-'
-                                       f'{data["visiting_rest_day"]}T{data["visiting_rest_hour"]}:'
-                                       f'{data["visiting_rest_minute"]}',
-                    "partySize": int(data['group_size'])
+                    "reservationTime": f'{data[f"visiting_rest_year{data_crit}"]}-'
+                                       f'{data[f"visiting_rest_month{data_crit}"]}-'
+                                       f'{data[f"visiting_rest_day{data_crit}"]}T'
+                                       f'{data[f"visiting_rest_hour{data_crit}"]}:'
+                                       f'{data[f"visiting_rest_minute{data_crit}"]}',
+                    "partySize": int(data[f'group_size{data_crit}'])
                 }
                 detail_response = requests.post(url=details_url, json=details_payload,
                                                 headers=headers, params=querystring, timeout=15)
@@ -87,11 +98,11 @@ async def find_and_show_restaurants(message: Message, state: FSMContext) -> None
                     if not caption:
                         count -= 1
                     else:
-                        if int(data['number_of_rest_photos']) > 0:
+                        if int(data[f'number_of_rest_photos{data_crit}']) > 0:
                             result, links = [], []
                             photos = caption[1]
                             try:
-                                for photo_url in range(int(data['number_of_rest_photos'])):
+                                for photo_url in range(int(data[f'number_of_rest_photos{data_crit}'])):
                                     links.append(photos[random.randint(0, len(photos) - 1)])
                             except Exception:
                                 continue

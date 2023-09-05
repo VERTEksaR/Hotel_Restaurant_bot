@@ -18,25 +18,36 @@ headers = {
 }
 
 
-async def find_and_show_hotels(message: Message, state: FSMContext) -> None:
+async def find_and_show_hotels(message: Message, state: FSMContext, function: str) -> None:
     """
 
     Функция для поиска отелей по тем критериям, что пользователь
     ввел в машину состояний.
 
     :param message: (Message) сообщение, с которым работает данная функция;
-    :param state: (FSMContext) ссылка на машину состояний.
+    :param state: (FSMContext) ссылка на машину состояний;
+    :param function: (str) функция, выбранная пользователем.
     :return: None
 
     """
-    rooms_with_people = await distribution_people.distribution_people(state)
+    rooms_with_people = await distribution_people.distribution_people(state, function)
 
     async with state.proxy() as data:
+        if function == 'low':
+            sort = 'PRICE_LOW_TO_HIGH'
+            data_crit = '_low'
+            logger.info('Производится поиск отелей по сортировке: от мин. к макс. цене')
+        elif function == 'high':
+            sort = 'POPULARITY'
+            data_crit = '_high'
+            logger.info('Производится поиск отелей по сортировке: популярность')
         payload = {
-            "geoId": int(data['geoId']),
-            "checkIn": f'{data["check_in_year"]}-{data["check_in_month"]}-{data["check_in_day"]}',
-            "checkOut": f'{data["check_out_year"]}-{data["check_out_month"]}-{data["check_out_day"]}',
-            "sort": "PRICE_LOW_TO_HIGH",
+            "geoId": int(data[f'geoId{data_crit}']),
+            "checkIn": f'{data[f"check_in_year{data_crit}"]}-{data[f"check_in_month{data_crit}"]}-'
+                       f'{data[f"check_in_day{data_crit}"]}',
+            "checkOut": f'{data[f"check_out_year{data_crit}"]}-{data[f"check_out_month{data_crit}"]}-'
+                        f'{data[f"check_out_day{data_crit}"]}',
+            "sort": sort,
             "sortOrder": "asc",
             "filters": [
                 {
@@ -45,7 +56,7 @@ async def find_and_show_hotels(message: Message, state: FSMContext) -> None:
                 },
                 {
                     "id": "price",
-                    "value": [data['min_price'], data['max_price']]
+                    "value": [data[f'min_price{data_crit}'], data[f'max_price{data_crit}']]
                 },
                 {
                     "id": "type",
@@ -90,13 +101,15 @@ async def find_and_show_hotels(message: Message, state: FSMContext) -> None:
         count = 0
 
         for hotel in hotels.values():
-            if count < int(data['number_of_hotels']):
+            if count < int(data[f'number_of_hotels{data_crit}']):
                 count += 1
                 details_url = "https://travel-advisor.p.rapidapi.com/hotels/v2/get-details"
                 details_payload = {
                     "contentId": hotel['id'],
-                    "checkIn": f'{data["check_in_year"]}-{data["check_in_month"]}-{data["check_in_day"]}',
-                    "checkOut": f'{data["check_out_year"]}-{data["check_out_month"]}-{data["check_out_day"]}',
+                    "checkIn": f'{data[f"check_in_year{data_crit}"]}-{data[f"check_in_month{data_crit}"]}-'
+                               f'{data[f"check_in_day{data_crit}"]}',
+                    "checkOut": f'{data[f"check_out_year{data_crit}"]}-{data[f"check_out_month{data_crit}"]}-'
+                                f'{data[f"check_out_day{data_crit}"]}',
                     "rooms": rooms_with_people
                 }
                 detail_response = requests.post(url=details_url, json=details_payload,
@@ -108,11 +121,11 @@ async def find_and_show_hotels(message: Message, state: FSMContext) -> None:
                     if not caption:
                         count -= 1
                     else:
-                        if int(data['number_of_photos']) > 0:
+                        if int(data[f'number_of_photos{data_crit}']) > 0:
                             result, links = [], []
                             photos = caption[1]
                             try:
-                                for photo_url in range(int(data['number_of_photos'])):
+                                for photo_url in range(int(data[f'number_of_photos{data_crit}'])):
                                     links.append(photos[random.randint(0, len(photos) - 1)])
                             except Exception:
                                 continue

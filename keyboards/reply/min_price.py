@@ -23,6 +23,7 @@ async def set_min_price(message: Message) -> None:
     btn6 = KeyboardButton('Свой вариант')
     min_price.add(btn1).insert(btn2).insert(btn3).insert(btn4).insert(btn5)
     min_price.add(btn6)
-    await UserData.min_price.set()
+    await UserData.min_price_low.set()
+
     await message.answer('8. Укажите минимальную цену поиска (руб.)',
                          reply_markup=min_price)

@@ -3,7 +3,7 @@ from typing import List, Union
 from aiogram.dispatcher import FSMContext
 
 
-async def distribution_people(state: FSMContext) -> List[dict[str, Union[int, list]]]:
+async def distribution_people(state: FSMContext, function: str) -> List[dict[str, Union[int, list]]]:
     """
 
     Функция, распределяющая людей по отдельным номерам. Возвращает
@@ -11,7 +11,8 @@ async def distribution_people(state: FSMContext) -> List[dict[str, Union[int, li
     количество взрослых людей и возраст детей (если детей 0,
     то список возрастов остается пустым).
 
-    :param state: (FSMContext) ссылка на машину состояний.
+    :param state: (FSMContext) ссылка на машину состояний;
+    :param function: (str) функция, выбранная пользователем.
     :return: List[dict[str, Union[int, list]]]
 
     """
@@ -22,9 +23,14 @@ async def distribution_people(state: FSMContext) -> List[dict[str, Union[int, li
     }
 
     async with state.proxy() as data:
-        total_adults = int(data['adults'])
-        total_kids = int(data['kids'])
-        total_rooms = int(data['rooms'])
+        if function == 'low':
+            data_crit = '_low'
+        elif function == 'high':
+            data_crit = '_high'
+
+        total_adults = int(data[f'adults{data_crit}'])
+        total_kids = int(data[f'kids{data_crit}'])
+        total_rooms = int(data[f'rooms{data_crit}'])
     int_number_of_adults = total_adults // total_rooms
     non_int_number_of_adults = total_adults % total_rooms
     int_number_of_kids = total_kids // total_rooms

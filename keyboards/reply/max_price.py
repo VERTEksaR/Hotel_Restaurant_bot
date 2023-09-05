@@ -23,6 +23,7 @@ async def set_max_price(message: Message) -> None:
     btn6 = KeyboardButton('Свой вариант')
     max_price.add(btn1).insert(btn2).insert(btn3).insert(btn4).insert(btn5)
     max_price.add(btn6)
-    await UserData.max_price.set()
+    await UserData.max_price_low.set()
+
     await message.answer('9. Укажите максимальную цену поиска (руб.)',
                          reply_markup=max_price)
