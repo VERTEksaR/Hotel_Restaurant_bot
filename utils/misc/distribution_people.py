@@ -23,11 +23,7 @@ async def distribution_people(state: FSMContext, function: str) -> List[dict[str
     }
 
     async with state.proxy() as data:
-        if function == 'low':
-            data_crit = '_low'
-        elif function == 'high':
-            data_crit = '_high'
-
+        data_crit = f'_{function}'
         total_adults = int(data[f'adults{data_crit}'])
         total_kids = int(data[f'kids{data_crit}'])
         total_rooms = int(data[f'rooms{data_crit}'])

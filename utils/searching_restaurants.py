@@ -33,18 +33,26 @@ async def find_and_show_restaurants(message: Message, state: FSMContext, functio
         if function == 'low':
             price = '10953'
             data_crit = '_low'
-            logger.info('Производится поиск ресторанов по сортировке: дешевая кухня')
+            sort = 'RELEVANCE'
+            logger.info(f'Производится поиск ресторанов по сортировке: {sort}')
         elif function == 'high':
             price = '10954'
             data_crit = '_high'
-            logger.info('Производится поиск ресторанов по сортировке: высокая кухня')
+            sort = 'RELEVANCE'
+            logger.info(f'Производится поиск ресторанов по сортировке: {sort}')
+        elif function == 'custom':
+            price = data['restaurant_price_custom']
+            data_crit = '_custom'
+            sort = data['restaurant_choice_custom']
+            logger.info(f'Производится поиск ресторанов по сортировке: {sort}')
+        print(data)
         payload = {
             "geoId": int(data[f'geoId{data_crit}']),
             "partySize": int(data[f'group_size{data_crit}']),
             "reservationTime": f'{data[f"visiting_rest_year{data_crit}"]}-{data[f"visiting_rest_month{data_crit}"]}-'
                                f'{data[f"visiting_rest_day{data_crit}"]}T{data[f"visiting_rest_hour{data_crit}"]}:'
                                f'{data[f"visiting_rest_minute{data_crit}"]}',
-            "sort": "RELEVANCE",
+            "sort": sort,
             "sortOrder": "asc",
             "filters": [
                 {

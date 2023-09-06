@@ -36,11 +36,15 @@ async def find_and_show_hotels(message: Message, state: FSMContext, function: st
         if function == 'low':
             sort = 'PRICE_LOW_TO_HIGH'
             data_crit = '_low'
-            logger.info('Производится поиск отелей по сортировке: от мин. к макс. цене')
+            logger.info(f'Производится поиск отелей по сортировке: {sort}')
         elif function == 'high':
             sort = 'POPULARITY'
             data_crit = '_high'
-            logger.info('Производится поиск отелей по сортировке: популярность')
+            logger.info(f'Производится поиск отелей по сортировке: {sort}')
+        elif function == 'custom':
+            sort = data['hotel_choice_custom']
+            data_crit = '_custom'
+            logger.info(f'Производится поиск отелей по сортировке: {sort}')
         payload = {
             "geoId": int(data[f'geoId{data_crit}']),
             "checkIn": f'{data[f"check_in_year{data_crit}"]}-{data[f"check_in_month{data_crit}"]}-'
