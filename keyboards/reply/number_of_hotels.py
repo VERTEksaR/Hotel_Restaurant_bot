@@ -27,3 +27,8 @@ async def set_num_of_hotels(message: Message, function: str) -> None:
         await UserData.number_of_hotels_high.set()
         await message.answer('8. Укажите количество отелей для просмотра',
                              reply_markup=num_hotels)
+
+    elif function == 'custom':
+        await UserData.number_of_hotels_custom.set()
+        await message.answer('11. Укажите количество отелей для просмотра',
+                             reply_markup=num_hotels)

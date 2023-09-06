@@ -18,9 +18,13 @@ async def set_group_size(message: Message, function: str) -> None:
     for human in range(1, 20):
         group.insert(KeyboardButton(f'{human}'))
 
-    if function == 'low':
-        await UserData.group_size_low.set()
-    elif function == 'high':
-        await UserData.group_size_high.set()
+    if function != 'custom':
+        if function == 'low':
+            await UserData.group_size_low.set()
+        elif function == 'high':
+            await UserData.group_size_high.set()
 
-    await message.answer('4. Укажите размер группы', reply_markup=group)
+        await message.answer('4. Укажите размер группы', reply_markup=group)
+    elif function == 'custom':
+        await UserData.group_size_custom.set()
+        await message.answer('7. Укажите размер группы', reply_markup=group)

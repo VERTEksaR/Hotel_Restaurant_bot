@@ -39,16 +39,11 @@ async def select_day(message: Message, state: FSMContext, month: str, function: 
 
     """
     async with state.proxy() as data:
-        if function == 'low':
-            check_in_year = int(data['check_in_year_low'])
-            check_in_month = int(data['check_in_month_low'])
-            check_in_day = int(data['check_in_day_low'])
-            check_out_month = int(month)
-        elif function == 'high':
-            check_in_year = int(data['check_in_year_high'])
-            check_in_month = int(data['check_in_month_high'])
-            check_in_day = int(data['check_in_day_high'])
-            check_out_month = int(month)
+        data_crit = f'_{function}'
+        check_in_year = int(data[f'check_in_year{data_crit}'])
+        check_in_month = int(data[f'check_in_month{data_crit}'])
+        check_in_day = int(data[f'check_in_day{data_crit}'])
+        check_out_month = int(month)
 
         if check_out_month == check_in_month:
             if check_out_month in [1, 3, 5, 7, 8, 10, 12]:
@@ -73,6 +68,8 @@ async def select_day(message: Message, state: FSMContext, month: str, function: 
         await UserData.check_out_day_low.set()
     elif function == 'high':
         await UserData.check_out_day_high.set()
+    elif function == 'custom':
+        await UserData.check_out_day_custom.set()
 
 
 @dp.callback_query_handler(state=UserData.check_out_day_low)
@@ -122,4 +119,29 @@ async def check_out_day_callback(callback: CallbackQuery, state: FSMContext) -> 
                                             text=f'Вы выбрали день - {callback.data}')
 
     await UserData.check_out_date_high.set()
+    await confirmation(callback.message)
+
+
+@dp.callback_query_handler(state=UserData.check_out_day_custom)
+async def check_out_day_callback(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+
+    Функция-callback, реагирующая на изменения состояния UserData.check_out_day_custom.
+    Записывает день, выбранный пользователем в машину состояний.
+
+    :param callback: callback_data, передающийся от функции select_day при нажатии
+    определенной кнопки;
+    :param state: (FSMContext) ссылка на машину состояний.
+    :return:None
+
+    """
+    for number in range(1, 32):
+        if str(number) == callback.data:
+            async with state.proxy() as data:
+                data['check_out_day_custom'] = callback.data
+                await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                            message_id=callback.message.message_id,
+                                            text=f'Вы выбрали день - {callback.data}')
+
+    await UserData.check_out_date_custom.set()
     await confirmation(callback.message)

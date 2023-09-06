@@ -27,10 +27,8 @@ async def set_hour(message: Message, state: FSMContext, day: str, function: str)
     """
     hours_buttons = InlineKeyboardMarkup(row_width=6)
     async with state.proxy() as data:
-        if function == 'low':
-            data['visiting_rest_day_low'] = int(day)
-        elif function == 'high':
-            data['visiting_rest_day_high'] = int(day)
+        data_crit = f'_{function}'
+        data[f'visiting_rest_day{data_crit}'] = int(day)
 
     if current_day == int(day):
         for hour in range(current_hour, 24):
@@ -43,6 +41,8 @@ async def set_hour(message: Message, state: FSMContext, day: str, function: str)
         await UserData.visiting_rest_hour_low.set()
     elif function == 'high':
         await UserData.visiting_rest_hour_high.set()
+    elif function == 'custom':
+        await UserData.visiting_rest_hour_custom.set()
 
     await message.answer('Выберите час:', reply_markup=hours_buttons)
 
@@ -95,3 +95,28 @@ async def callback_hour(callback: CallbackQuery, state: FSMContext) -> None:
                                             text=f'Вы выбрали час - {callback.data}')
 
             await set_minute(callback.message, 'high')
+
+
+@dp.callback_query_handler(state=UserData.visiting_rest_hour_custom)
+async def callback_hour(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+
+    Функция-callback, реагирующая на изменения состояния UserData.visiting_rest_hour_custom.
+    Записывает час, выбранный пользователем в машину состояний, а затем
+    вызывает функцию по выбору минут.
+
+    :param callback: callback_data, передающийся от функции select_year при нажатии
+    определенной кнопки;
+    :param state: (FSMContext) ссылка на машину состояний.
+    :return:None
+
+    """
+    for number in range(24):
+        if str(number) == callback.data:
+            async with state.proxy() as data:
+                data['visiting_rest_hour_custom'] = callback.data
+                await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                            message_id=callback.message.message_id,
+                                            text=f'Вы выбрали час - {callback.data}')
+
+            await set_minute(callback.message, 'custom')

@@ -16,7 +16,7 @@ async def filling_buttons(message: Message, day: int, total_days: int) -> None:
     """
 
     Функция, генерирующая inline-кнопки с днями, указывающими
-    когда можно заселиться в отель.
+    возможные дни посещения.
 
     :param message: (Message) сообщение, с которым работает данная функция;
     :param day: (int) текущий день или первый день месяца;
@@ -34,7 +34,7 @@ async def select_day(message: Message, state: FSMContext, month: str, choice: st
     """
 
     Функция, задающая параметры day и total_days для функции filling_buttons().
-    Устанавливает состояние для параметра check_in_day, записывающий день заезда.
+    Устанавливает состояние для параметра check_in_day, записывающий день посещения.
 
     :param message: (Message) сообщение, с которым работает данная функция;
     :param state: (FSMContext) ссылка на машину состояний;
@@ -45,19 +45,16 @@ async def select_day(message: Message, state: FSMContext, month: str, choice: st
 
     """
     async with state.proxy() as data:
-        if choice.endswith('Отель') and function == 'low':
-            data['check_in_month_low'] = month
-            year = int(data['check_in_year_low'])
-        elif choice.endswith('Отель') and function == 'high':
-            data['check_in_month_high'] = month
-            year = int(data['check_in_year_high'])
-        elif choice.endswith('Ресторан') and function == 'low':
-            data['visiting_rest_month_low'] = month
-            year = int(data['visiting_rest_year_low'])
-        elif choice.endswith('Ресторан') and function == 'high':
-            data['visiting_rest_month_high'] = month
-            year = int(data['visiting_rest_year_high'])
+        if choice.endswith('Отель'):
+            data_state_month = 'check_in_month'
+            data_state_year = 'check_in_year'
+        elif choice.endswith('Ресторан'):
+            data_state_month = 'visiting_rest_month'
+            data_state_year = 'visiting_rest_year'
 
+        data_crit = f'_{function}'
+        data[f'{data_state_month}{data_crit}'] = month
+        year = int(data[f'{data_state_year}{data_crit}'])
         an_month = int(month)
 
         if (an_month == current_month) and (year == current_year):
@@ -86,14 +83,20 @@ async def select_day(message: Message, state: FSMContext, month: str, choice: st
                 else:
                     await filling_buttons(message, 1, 29)
 
-    if choice.endswith('Отель') and function == 'low':
-        await UserData.check_in_day_low.set()
-    elif choice.endswith('Отель') and function == 'high':
-        await UserData.check_in_day_high.set()
-    elif choice.endswith('Ресторан') and function == 'low':
-        await UserData.visiting_rest_day_low.set()
-    elif choice.endswith('Ресторан') and function == 'high':
-        await UserData.visiting_rest_day_high.set()
+    if choice.endswith('Отель'):
+        if function == 'low':
+            await UserData.check_in_day_low.set()
+        elif function == 'high':
+            await UserData.check_in_day_high.set()
+        elif function == 'custom':
+            await UserData.check_in_day_custom.set()
+    elif choice.endswith('Ресторан'):
+        if function == 'low':
+            await UserData.visiting_rest_day_low.set()
+        elif function == 'high':
+            await UserData.visiting_rest_day_high.set()
+        elif function == 'custom':
+            await UserData.visiting_rest_day_custom.set()
 
 
 @dp.callback_query_handler(state=UserData.check_in_day_low)
@@ -144,6 +147,30 @@ async def day_callback(callback: CallbackQuery, state: FSMContext) -> None:
                 await confirmation(callback.message)
 
 
+@dp.callback_query_handler(state=UserData.check_in_day_custom)
+async def day_callback(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+
+    Функция-callback, реагирующая на изменения состояния UserData.check_in_day_custom.
+    Записывает день, выбранный пользователем в машину состояний.
+
+    :param callback: callback_data, передающийся от функции select_day при нажатии
+    определенной кнопки;
+    :param state: (FSMContext) ссылка на машину состояний.
+    :return:None
+
+    """
+    for number in range(1, 32):
+        if str(number) == callback.data:
+            async with state.proxy() as data:
+                data['check_in_day_custom'] = callback.data
+                await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                            message_id=callback.message.message_id,
+                                            text=f'Вы выбрали день - {callback.data}')
+                await UserData.check_in_date_custom.set()
+                await confirmation(callback.message)
+
+
 @dp.callback_query_handler(state=UserData.visiting_rest_day_low)
 async def day_callback(callback: CallbackQuery, state: FSMContext) -> None:
     """
@@ -160,17 +187,10 @@ async def day_callback(callback: CallbackQuery, state: FSMContext) -> None:
     for number in range(1, 32):
         if str(number) == callback.data:
             async with state.proxy() as data:
-#                choice = data['choice_low']
                 data['visiting_rest_day_low'] = callback.data
                 await bot.edit_message_text(chat_id=callback.message.chat.id,
                                             message_id=callback.message.message_id,
                                             text=f'Вы выбрали день - {callback.data}')
-
-#                if choice.endswith('Отель'):
-#                   await UserData.check_in_date_low.set()
-#                    await confirmation(callback.message)
-#                elif choice.endswith('Ресторан'):
-                await UserData.check_date_low.set()
                 await set_hour(callback.message, state, callback.data, 'low')
 
 
@@ -190,15 +210,31 @@ async def day_callback(callback: CallbackQuery, state: FSMContext) -> None:
     for number in range(1, 32):
         if str(number) == callback.data:
             async with state.proxy() as data:
-#                choice = data['choice_high']
                 data['visiting_rest_day_high'] = callback.data
                 await bot.edit_message_text(chat_id=callback.message.chat.id,
                                             message_id=callback.message.message_id,
                                             text=f'Вы выбрали день - {callback.data}')
-
-#                if choice.endswith('Отель'):
-#                   await UserData.check_in_date_low.set()
-#                    await confirmation(callback.message)
-#                elif choice.endswith('Ресторан'):
-                await UserData.check_date_high.set()
                 await set_hour(callback.message, state, callback.data, 'high')
+
+
+@dp.callback_query_handler(state=UserData.visiting_rest_day_custom)
+async def day_callback(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+
+    Функция-callback, реагирующая на изменения состояния UserData.visiting_rest_day_custom.
+    Записывает день, выбранный пользователем в машину состояний.
+
+    :param callback: callback_data, передающийся от функции select_day при нажатии
+    определенной кнопки;
+    :param state: (FSMContext) ссылка на машину состояний.
+    :return:None
+
+    """
+    for number in range(1, 32):
+        if str(number) == callback.data:
+            async with state.proxy() as data:
+                data['visiting_rest_day_custom'] = callback.data
+                await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                            message_id=callback.message.message_id,
+                                            text=f'Вы выбрали день - {callback.data}')
+                await set_hour(callback.message, state, callback.data, 'custom')

@@ -12,7 +12,7 @@ async def select_year(message: Message, state: FSMContext, function: str) -> Non
 
     Функция, создающая inline-кнопки с годами, указывающими когда
     можно выехать из отеля. Устанавливает состояние
-    для параметра check_out_year_low (check_out_year_high), записывающий год выезда.
+    для параметра check_out_year, записывающий год выезда.
 
     :param message: (Message) сообщение, с которым работает данная функция;
     :param state: (FSMContext) ссылка на машину состояний;
@@ -22,14 +22,10 @@ async def select_year(message: Message, state: FSMContext, function: str) -> Non
     """
     year_button = InlineKeyboardMarkup()
     async with state.proxy() as data:
-        if function == 'low':
-            check_in_month = int(data['check_in_month_low'])
-            check_in_day = int(data['check_in_day_low'])
-            check_in_year = int(data['check_in_year_low'])
-        elif function == 'high':
-            check_in_month = int(data['check_in_month_high'])
-            check_in_day = int(data['check_in_day_high'])
-            check_in_year = int(data['check_in_year_high'])
+        data_crit = f'_{function}'
+        check_in_day = int(data[f'check_in_day{data_crit}'])
+        check_in_month = int(data[f'check_in_month{data_crit}'])
+        check_in_year = int(data[f'check_in_year{data_crit}'])
 
         if check_in_month < 12:
             btn1 = InlineKeyboardButton(f'{check_in_year}',
@@ -50,6 +46,9 @@ async def select_year(message: Message, state: FSMContext, function: str) -> Non
             await UserData.check_out_year_low.set()
         elif function == 'high':
             await UserData.check_out_year_high.set()
+        elif function == 'custom':
+            await UserData.check_out_year_custom.set()
+
         await message.answer('Выберите год:', reply_markup=year_button)
 
 
@@ -115,3 +114,35 @@ async def check_out_year_callback(callback: CallbackQuery, state: FSMContext) ->
                                         message_id=callback.message.message_id,
                                         text=f'Вы выбрали год - {check_in_year + 1}')
             await select_month(callback.message, state, 'high')
+
+
+@dp.callback_query_handler(state=UserData.check_out_year_custom)
+async def check_out_year_callback(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция-callback, реагирующая на изменения состояния UserData.check_out_year_custom.
+    Записывает год, выбранный пользователем в машину состояний, а затем
+    вызывает функцию по выбору месяца.
+
+    :param callback: callback_data, передающийся от функции select_year при нажатии
+    определенной кнопки;
+    :param state: (FSMContext) ссылка на машину состояний.
+    :return:None
+
+    """
+    if callback.data == 'outbtn1':
+        async with state.proxy() as data:
+            check_in_year = data['check_in_year_custom']
+            data['check_out_year_custom'] = check_in_year
+            await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                        message_id=callback.message.message_id,
+                                        text=f'Вы выбрали год - {check_in_year}')
+            await select_month(callback.message, state, 'custom')
+
+    elif callback.data == 'outbtn2':
+        async with state.proxy() as data:
+            check_in_year = data['check_in_year_custom']
+            data['check_out_year_custom'] = check_in_year + 1
+            await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                        message_id=callback.message.message_id,
+                                        text=f'Вы выбрали год - {check_in_year + 1}')
+            await select_month(callback.message, state, 'custom')

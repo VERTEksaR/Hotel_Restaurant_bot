@@ -19,10 +19,8 @@ async def total_kids(message: Message, state: FSMContext, function: str) -> None
 
     """
     async with state.proxy() as data:
-        if function == 'low':
-            adults = int(data['adults_low'])
-        elif function == 'high':
-            adults = int(data['adults_high'])
+        data_crit = f'_{function}'
+        adults = int(data[f'adults{data_crit}'])
 
     kids = ReplyKeyboardMarkup(resize_keyboard=True, row_width=7)
     if adults < 5:
@@ -32,10 +30,15 @@ async def total_kids(message: Message, state: FSMContext, function: str) -> None
         for child in range(21):
             kids.insert(KeyboardButton(f'{child}'))
 
-    if function == 'low':
-        await UserData.kids_low.set()
-    elif function == 'high':
-        await UserData.kids_high.set()
+    if function != 'custom':
+        if function == 'low':
+            await UserData.kids_low.set()
+        elif function == 'high':
+            await UserData.kids_high.set()
 
-    await message.answer('7. Введите количество детей',
-                         reply_markup=kids)
+        await message.answer('7. Введите количество детей',
+                             reply_markup=kids)
+    elif function == 'custom':
+        await UserData.kids_custom.set()
+        await message.answer('8. Введите количество детей',
+                             reply_markup=kids)

@@ -19,6 +19,8 @@ async def set_geo_cords(state: FSMContext, function: str) -> None:
             address_city = data['name_of_city_low']
         elif function == 'high':
             address_city = data['name_of_city_high']
+        elif function == 'custom':
+            address_city = data['name_of_city_custom']
 
         location_city = geolocator.geocode(address_city)
         data['latitude'] = location_city.latitude
