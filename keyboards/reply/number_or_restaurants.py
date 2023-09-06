@@ -19,10 +19,15 @@ async def set_num_of_rests(message: Message, function: str) -> None:
     for number in range(1, 9):
         num_restaurants.insert(KeyboardButton(f'{number}'))
 
-    if function == 'low':
-        await UserData.number_of_restaurants_low.set()
-    elif function == 'high':
-        await UserData.number_of_restaurants_high.set()
+    if function != 'custom':
+        if function == 'low':
+            await UserData.number_of_restaurants_low.set()
+        elif function == 'high':
+            await UserData.number_of_restaurants_high.set()
 
-    await message.answer('5. Укажите количество ресторанов для просмотра',
-                         reply_markup=num_restaurants)
+        await message.answer('5. Укажите количество ресторанов для просмотра',
+                             reply_markup=num_restaurants)
+    elif function == 'custom':
+        await UserData.number_of_restaurants_custom.set()
+        await message.answer('7. Укажите количество ресторанов для просмотра',
+                             reply_markup=num_restaurants)

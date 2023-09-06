@@ -27,3 +27,8 @@ async def set_num_of_photo(message: Message, function: str) -> None:
         await UserData.number_of_photos_high.set()
         await message.answer('9. Укажите количество фотографий для просмотра',
                              reply_markup=num_photos)
+
+    elif function == 'custom':
+        await UserData.number_of_photos_custom.set()
+        await message.answer('12. Укажите количество фотографий для просмотра',
+                             reply_markup=num_photos)

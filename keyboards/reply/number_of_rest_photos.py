@@ -19,10 +19,15 @@ async def set_num_of_photo(message: Message, function: str) -> None:
     for number in range(1, 6):
         num_photos.insert(KeyboardButton(f'{number}'))
 
-    if function == 'low':
-        await UserData.number_of_rest_photos_low.set()
-    elif function == 'high':
-        await UserData.number_of_rest_photos_high.set()
+    if function != 'custom':
+        if function == 'low':
+            await UserData.number_of_rest_photos_low.set()
+        elif function == 'high':
+            await UserData.number_of_rest_photos_high.set()
 
-    await message.answer('6. Укажите количество фотографий для просмотра',
-                         reply_markup=num_photos)
+        await message.answer('6. Укажите количество фотографий для просмотра',
+                             reply_markup=num_photos)
+    elif function == 'custom':
+        await UserData.number_of_rest_photos_custom.set()
+        await message.answer('8. Укажите количество фотографий для просмотра',
+                             reply_markup=num_photos)

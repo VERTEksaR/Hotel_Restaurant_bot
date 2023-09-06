@@ -20,10 +20,15 @@ async def set_rooms(message: Message, function: str) -> None:
     for room in range(1, 9):
         rooms.insert(KeyboardButton(f'{room}'))
 
-    if function == 'low':
-        await UserData.rooms_low.set()
-    elif function == 'high':
-        await UserData.rooms_high.set()
+    if function != 'custom':
+        if function == 'low':
+            await UserData.rooms_low.set()
+        elif function == 'high':
+            await UserData.rooms_high.set()
 
-    await message.answer('5. Введите необходимое количество номеров',
-                         reply_markup=rooms)
+        await message.answer('5. Введите необходимое количество номеров',
+                             reply_markup=rooms)
+    elif function == 'custom':
+        await UserData.rooms_custom.set()
+        await message.answer('6. Введите необходимое количество номеров',
+                             reply_markup=rooms)

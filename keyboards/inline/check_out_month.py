@@ -15,7 +15,7 @@ async def select_month(message: Message, state: FSMContext, function: str) -> No
 
     Функция, создающая inline-кнопки с месяцами, указывающими когда
     можно выехать из отеля. Устанавливает состояние
-    для параметра check_out_month_low (check_out_month_high), записывающий месяц выезда.
+    для параметра check_out_month, записывающий месяц выезда.
 
     :param message: (Message) сообщение, с которым работает данная функция;
     :param state: (FSMContext) ссылка на машину состояний,
@@ -25,12 +25,9 @@ async def select_month(message: Message, state: FSMContext, function: str) -> No
     """
     month_button = InlineKeyboardMarkup()
     async with state.proxy() as data:
-        if function == 'low':
-            check_in_month = int(data['check_in_month_low'])
-            check_in_day = int(data['check_in_day_low'])
-        elif function == 'high':
-            check_in_month = int(data['check_in_month_high'])
-            check_in_day = int(data['check_in_day_high'])
+        data_crit = f'_{function}'
+        check_in_month = int(data[f'check_in_month{data_crit}'])
+        check_in_day = int(data[f'check_in_day{data_crit}'])
 
         if (check_in_month in [1, 3, 5, 7, 8, 10, 12]) and (check_in_day > 1):
             if check_in_month == 12:
@@ -61,6 +58,8 @@ async def select_month(message: Message, state: FSMContext, function: str) -> No
         await UserData.check_out_month_low.set()
     elif function == 'high':
         await UserData.check_out_month_high.set()
+    elif function == 'custom':
+        await UserData.check_out_month_custom.set()
 
 
 @dp.callback_query_handler(state=UserData.check_out_month_low)
@@ -141,3 +140,43 @@ async def check_out_month_callback(callback: CallbackQuery, state: FSMContext) -
                                         message_id=callback.message.message_id,
                                         text='Вы выбрали месяц - 1')
             await select_day(callback.message, state, data['check_out_month_high'], 'high')
+
+
+@dp.callback_query_handler(state=UserData.check_out_month_custom)
+async def check_out_month_callback(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+
+    Функция-callback, реагирующая на изменения состояния UserData.check_out_month_custom.
+    Записывает месяц, выбранный пользователем в машину состояний, а затем
+    вызывает функцию по выбору дня.
+
+    :param callback: callback_data, передающийся от функции select_month при нажатии
+    определенной кнопки;
+    :param state: (FSMContext) ссылка на машину состояний.
+    :return:None
+
+    """
+    if callback.data == 'outmonth1':
+        async with state.proxy() as data:
+            data['check_out_month_custom'] = data['check_in_month_custom']
+            await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                        message_id=callback.message.message_id,
+                                        text=f'Вы выбрали месяц - {data["check_out_month_custom"]}')
+            await select_day(callback.message, state, data['check_out_month_custom'], 'custom')
+
+    elif callback.data == 'outmonth2':
+        async with state.proxy() as data:
+            check_in_month = int(data['check_in_month_custom'])
+            data['check_out_month_custom'] = check_in_month + 1
+            await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                        message_id=callback.message.message_id,
+                                        text=f'Вы выбрали месяц - {check_in_month + 1}')
+            await select_day(callback.message, state, data['check_out_month_custom'], 'custom')
+
+    elif callback.data == 'outmonth1.5':
+        async with state.proxy() as data:
+            data['check_out_month_custom'] = 1
+            await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                        message_id=callback.message.message_id,
+                                        text='Вы выбрали месяц - 1')
+            await select_day(callback.message, state, data['check_out_month_custom'], 'custom')

@@ -16,7 +16,7 @@ async def select_month(message: Message, state: FSMContext, choice: str, functio
     """
 
     Функция, создающая inline-кнопки с месяцами. Устанавливает состояние
-    для параметра check_in_month_low (check_in_month_high), записывающий месяц посещения.
+    для параметра check_in_month, записывающий месяц посещения.
 
     :param message: (Message) сообщение, с которым работает данная функция;
     :param state: (FSMContext) ссылка на машину состояний;
@@ -28,14 +28,14 @@ async def select_month(message: Message, state: FSMContext, choice: str, functio
     month_button = InlineKeyboardMarkup()
     async with state.proxy() as data:
         current_month = time.localtime().tm_mon
-        if choice.endswith('Отель') and function == 'low':
-            year = int(data['check_in_year_low'])
-        elif choice.endswith('Отель') and function == 'high':
-            year = int(data['check_in_year_high'])
-        elif choice.endswith('Ресторан') and function == 'low':
-            year = int(data['visiting_rest_year_low'])
-        elif choice.endswith('Ресторан') and function == 'high':
-            year = int(data['visiting_rest_year_high'])
+
+        if choice.endswith('Отель'):
+            data_state = 'check_in_year'
+        elif choice.endswith('Ресторан'):
+            data_state = 'visiting_rest_year'
+
+        data_crit = f'_{function}'
+        year = int(data[f'{data_state}{data_crit}'])
 
         if year == current_year:
             for month, name in months:
@@ -47,14 +47,20 @@ async def select_month(message: Message, state: FSMContext, choice: str, functio
 
         await message.answer('Выберите месяц:', reply_markup=month_button)
 
-    if choice.endswith('Отель') and function == 'low':
-        await UserData.check_in_month_low.set()
-    elif choice.endswith('Отель') and function == 'high':
-        await UserData.check_in_month_high.set()
-    elif choice.endswith('Ресторан') and function == 'low':
-        await UserData.visiting_rest_month_low.set()
-    elif choice.endswith('Ресторан') and function == 'high':
-        await UserData.visiting_rest_month_high.set()
+    if choice.endswith('Отель'):
+        if function == 'low':
+            await UserData.check_in_month_low.set()
+        elif function == 'high':
+            await UserData.check_in_month_high.set()
+        elif function == 'custom':
+            await UserData.check_in_month_custom.set()
+    elif choice.endswith('Ресторан'):
+        if function == 'low':
+            await UserData.visiting_rest_month_low.set()
+        elif function == 'high':
+            await UserData.visiting_rest_month_high.set()
+        elif function == 'custom':
+            await UserData.visiting_rest_month_custom.set()
 
 
 @dp.callback_query_handler(state=UserData.check_in_month_low)
@@ -107,6 +113,31 @@ async def month_callback(callback: CallbackQuery, state: FSMContext) -> None:
                 await select_day(callback.message, state, data['check_in_month_high'], choice, 'high')
 
 
+@dp.callback_query_handler(state=UserData.check_in_month_custom)
+async def month_callback(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+
+    Функция-callback, реагирующая на изменения состояния UserData.check_in_month_custom.
+    Записывает месяц, выбранный пользователем в машину состояний, а затем
+    вызывает функцию по выбору дня.
+
+    :param callback: callback_data, передающийся от функции select_month при нажатии
+    определенной кнопки;
+    :param state: (FSMContext) ссылка на машину состояний.
+    :return:None
+
+    """
+    for number in range(1, 13):
+        if str(number) == callback.data:
+            async with state.proxy() as data:
+                choice = data['choice_custom']
+                data['check_in_month_custom'] = number
+                await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                            message_id=callback.message.message_id,
+                                            text=f'Вы выбрали месяц - {callback.data}')
+                await select_day(callback.message, state, data['check_in_month_custom'], choice, 'custom')
+
+
 @dp.callback_query_handler(state=UserData.visiting_rest_month_low)
 async def month_callback(callback: CallbackQuery, state: FSMContext) -> None:
     """
@@ -155,3 +186,28 @@ async def month_callback(callback: CallbackQuery, state: FSMContext) -> None:
                                             message_id=callback.message.message_id,
                                             text=f'Вы выбрали месяц - {callback.data}')
                 await select_day(callback.message, state, data['visiting_rest_month_high'], choice, 'high')
+
+
+@dp.callback_query_handler(state=UserData.visiting_rest_month_custom)
+async def month_callback(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+
+    Функция-callback, реагирующая на изменения состояния UserData.visiting_rest_month_custom.
+    Записывает месяц, выбранный пользователем в машину состояний, а затем
+    вызывает функцию по выбору дня.
+
+    :param callback: callback_data, передающийся от функции select_month при нажатии
+    определенной кнопки;
+    :param state: (FSMContext) ссылка на машину состояний.
+    :return:None
+
+    """
+    for number in range(1, 13):
+        if str(number) == callback.data:
+            async with state.proxy() as data:
+                choice = data['choice_custom']
+                data['visiting_rest_month_custom'] = number
+                await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                            message_id=callback.message.message_id,
+                                            text=f'Вы выбрали месяц - {callback.data}')
+                await select_day(callback.message, state, data['visiting_rest_month_custom'], choice, 'custom')

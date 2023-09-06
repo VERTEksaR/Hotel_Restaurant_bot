@@ -31,6 +31,8 @@ async def set_minute(message: Message, function: str) -> None:
         await UserData.visiting_rest_minute_low.set()
     elif function == 'high':
         await UserData.visiting_rest_minute_high.set()
+    elif function == 'custom':
+        await UserData.visiting_rest_minute_custom.set()
 
     await message.answer('Выберите минуты:', reply_markup=minute_buttons)
 
@@ -82,4 +84,29 @@ async def callback_minute(callback: CallbackQuery, state: FSMContext) -> None:
                                             text=f'Вы выбрали - {callback.data} минут')
 
             await UserData.check_date_high.set()
+            await confirmation(callback.message)
+
+
+@dp.callback_query_handler(state=UserData.visiting_rest_minute_custom)
+async def callback_minute(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+
+    Функция-callback, реагирующая на изменения состояния UserData.visiting_rest_minute_custom.
+    Записывает час, выбранный пользователем в машину состояний.
+
+    :param callback: callback_data, передающийся от функции select_year при нажатии
+    определенной кнопки;
+    :param state: (FSMContext) ссылка на машину состояний.
+    :return:None
+
+    """
+    for number in range(0, 60, 10):
+        if str(number) == callback.data:
+            async with state.proxy() as data:
+                data['visiting_rest_minute_custom'] = callback.data
+                await bot.edit_message_text(chat_id=callback.message.chat.id,
+                                            message_id=callback.message.message_id,
+                                            text=f'Вы выбрали - {callback.data} минут')
+
+            await UserData.check_date_custom.set()
             await confirmation(callback.message)
