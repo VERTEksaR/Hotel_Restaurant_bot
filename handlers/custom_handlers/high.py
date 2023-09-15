@@ -1,8 +1,10 @@
+from datetime import datetime
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from loguru import logger
 
+from database.models import db, User, Choice
 from loader import dp
 from states.data import UserData
 from utils.misc import city_id, geo_cords
@@ -232,6 +234,22 @@ async def check_num_of_photos(message: Message, state: FSMContext) -> None:
                      f'Отсортировать результаты: по популярности'
     await message.answer('Указанные данные:\n' + users_data,
                          reply_markup=ReplyKeyboardRemove())
+
+    with db:
+        user = User.get_or_none(User.user_id == message.from_user.id)
+
+        if user is None:
+            user_id = message.from_user.id
+            username = message.from_user.username
+            first_name = message.from_user.first_name
+            User.create(user_id=user_id, username=username, first_name=first_name)
+            user = User.get_or_none(User.user_id == message.from_user.id)
+        Choice.create(user=user, city=data['name_of_city_high'], command='high', choice=data['choice_high'],
+                      sort='Популярность', date_of_request=datetime.now(),
+                      date_of_visit=(f'{data["check_in_year_high"]}-{data["check_in_month_high"]}-'
+                                     f'{data["check_in_day_high"]} -> {data["check_out_year_high"]}-'
+                                     f'{data["check_out_month_high"]}-{data["check_in_day_high"]}'))
+
     await UserData.confirm_hotel_data_high.set()
     await confirm_all_data.confirmation(message)
 
@@ -348,6 +366,22 @@ async def show_rest_data(message: Message, state: FSMContext) -> None:
                     f'Отсортировать результаты: Высокая кухня'
     await message.answer('Указанные данные:\n' + user_data,
                          reply_markup=ReplyKeyboardRemove())
+
+    with db:
+        user = User.get_or_none(User.user_id == message.from_user.id)
+
+        if user is None:
+            user_id = message.from_user.id
+            username = message.from_user.username
+            first_name = message.from_user.first_name
+            User.create(user_id=user_id, username=username, first_name=first_name)
+            user = User.get_or_none(User.user_id == message.from_user.id)
+        Choice.create(user=user, city=data['name_of_city_high'], command='high', choice=data['choice_high'],
+                      sort='$$$$', date_of_request=datetime.now(),
+                      date_of_visit=(f'{data["visiting_rest_year_high"]}-{data["visiting_rest_month_high"]}-'
+                                     f'{data["visiting_rest_day_high"]}T{data["visiting_rest_hour_high"]}:'
+                                     f'{data["visiting_rest_minute_high"]}'))
+
     await UserData.confirm_restaurant_data_high.set()
     await confirm_all_data.confirmation(message)
 

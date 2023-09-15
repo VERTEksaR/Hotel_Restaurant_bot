@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from loguru import logger
 
+from database.models import db, Choice, User
 from loader import dp
 from states.data import UserData
 from utils.misc import city_id, geo_cords
@@ -266,10 +269,11 @@ async def check_max_price(message: Message, state: FSMContext) -> None:
     else:
         logger.info('Пользователь ввел максимальную цену')
         async with state.proxy() as data:
-            if int(data['min_price_custom']) >= int(message.text):
-                data['max_price_custom'], data['min_price_custom'] = int(data['min_price_custom']) + 10000, message.text
+            if int(data['min_price_low']) >= int(message.text):
+                data['max_price_low'], data['min_price_low'] = int(data['min_price_low']) + 10000, message.text
             else:
-                data['max_price_custom'] = message.text
+                data['max_price_low'] = message.text
+
         await number_of_hotels.set_num_of_hotels(message, 'low')
 
 
@@ -294,11 +298,13 @@ async def correct_max_price(message: Message, state: FSMContext) -> None:
             maxim_price = 20000
         logger.info('Пользователь ввел максимальную цену')
         async with state.proxy() as data:
-            if int(data['min_price_custom']) >= int(message.text):
-                data['max_price_custom'], data['min_price_custom'] = int(data['min_price_custom']) + 10000, message.text
+
+            if int(data['min_price_low']) >= maxim_price:
+                data['max_price_low'], data['min_price_low'] = int(data['min_price_low']) + 10000, maxim_price
             else:
-                data['max_price_custom'] = message.text
+                data['max_price_low'] = maxim_price
             await number_of_hotels.set_num_of_hotels(message, 'low')
+            
     except Exception:
         logger.error('Цена не является целым числом')
         await UserData.correct_max_price_low.set()
@@ -353,6 +359,22 @@ async def check_num_of_photo(message: Message, state: FSMContext) -> None:
                      f'Отсортировать результаты: мин. - макс. цена'
     await message.answer('Указанные данные:\n' + users_data,
                          reply_markup=ReplyKeyboardRemove())
+
+    with db:
+        user = User.get_or_none(User.user_id == message.from_user.id)
+
+        if user is None:
+            user_id = message.from_user.id
+            username = message.from_user.username
+            first_name = message.from_user.first_name
+            User.create(user_id=user_id, username=username, first_name=first_name)
+            user = User.get_or_none(User.user_id == message.from_user.id)
+        Choice.create(user=user, city=data['name_of_city_low'], command='low', choice=data['choice_low'],
+                      sort='Минимальная -> Максимальная цена', date_of_request=datetime.now(),
+                      date_of_visit=(f'{data["check_in_year_low"]}-{data["check_in_month_low"]}-'
+                                     f'{data["check_in_day_low"]} -> {data["check_out_year_low"]}-'
+                                     f'{data["check_out_month_low"]}-{data["check_in_day_low"]}'))
+
     await UserData.confirm_hotel_data_low.set()
     await confirm_all_data.confirmation(message)
 
@@ -469,6 +491,22 @@ async def show_rest_data(message: Message, state: FSMContext) -> None:
                     f'Отсортировать результаты: Дешевое питание'
     await message.answer('Указанные данные:\n' + user_data,
                          reply_markup=ReplyKeyboardRemove())
+
+    with db:
+        user = User.get_or_none(User.user_id == message.from_user.id)
+
+        if user is None:
+            user_id = message.from_user.id
+            username = message.from_user.username
+            first_name = message.from_user.first_name
+            User.create(user_id=user_id, username=username, first_name=first_name)
+            user = User.get_or_none(User.user_id == message.from_user.id)
+        Choice.create(user=user, city=data['name_of_city_low'], command='low', choice=data['choice_low'],
+                      sort='$', date_of_request=datetime.now(),
+                      date_of_visit=(f'{data["visiting_rest_year_low"]}-{data["visiting_rest_month_low"]}-'
+                                     f'{data["visiting_rest_day_low"]}T{data["visiting_rest_hour_low"]}:'
+                                     f'{data["visiting_rest_minute_low"]}'))
+
     await UserData.confirm_restaurant_data_low.set()
     await confirm_all_data.confirmation(message)
 

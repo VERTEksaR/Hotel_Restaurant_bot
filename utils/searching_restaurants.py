@@ -45,7 +45,7 @@ async def find_and_show_restaurants(message: Message, state: FSMContext, functio
             data_crit = '_custom'
             sort = data['restaurant_choice_custom']
             logger.info(f'Производится поиск ресторанов по сортировке: {sort}')
-        print(data)
+            
         payload = {
             "geoId": int(data[f'geoId{data_crit}']),
             "partySize": int(data[f'group_size{data_crit}']),
