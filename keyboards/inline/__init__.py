@@ -4,7 +4,10 @@ from .check_in_day import dp
 from .check_out_year import dp
 from .check_out_month import dp
 from .check_out_day import dp
+from .hotel_choice import dp
 from .hour_restaurant import dp
 from .minute_restaurant import dp
+from .restaurant_choice import dp
+from .price_restaurant import dp
 
 __all__ = ['dp']

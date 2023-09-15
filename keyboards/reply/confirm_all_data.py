@@ -1,7 +1,5 @@
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 
-from states.data import UserData
-
 
 async def confirmation(message: Message) -> None:
     """

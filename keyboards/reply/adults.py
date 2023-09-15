@@ -4,7 +4,7 @@ from aiogram.dispatcher import FSMContext
 from states.data import UserData
 
 
-async def total_adults(message: Message, state: FSMContext, rooms: str) -> None:
+async def total_adults(message: Message, state: FSMContext, rooms: str, function: str) -> None:
     """
 
     Функция, генерирующая reply-кнопки в количестве, зависящем
@@ -14,16 +14,34 @@ async def total_adults(message: Message, state: FSMContext, rooms: str) -> None:
 
     :param message: (Message) сообщение, с которым работает данная функция;
     :param state: (FSMContext) ссылка на машину состояний;
-    :param rooms: (str) количество комнат.
+    :param rooms: (str) количество комнат;
+    :param function: (str) функция, выбранная пользователем.
     :return: None
 
     """
     async with state.proxy() as data:
-        data['rooms'] = rooms
-        total_rooms = int(data['rooms'])
+        if function == 'low':
+            data['rooms_low'] = rooms
+        elif function == 'high':
+            data['rooms_high'] = rooms
+        elif function == 'custom':
+            data['rooms_custom'] = rooms
+
+    total_rooms = int(rooms)
+
     adults = ReplyKeyboardMarkup(resize_keyboard=True, row_width=8)
-    for adult in range(1, total_rooms * 4 + 1):
+    for adult in range(total_rooms, total_rooms * 4 + 1):
         adults.insert(KeyboardButton(f'{adult}'))
-    await UserData.adults.set()
-    await message.answer('6. Введите количество взрослых персон',
-                         reply_markup=adults)
+
+    if function != 'custom':
+        if function == 'low':
+            await UserData.adults_low.set()
+        elif function == 'high':
+            await UserData.adults_high.set()
+
+        await message.answer('6. Введите количество взрослых персон',
+                             reply_markup=adults)
+    elif function == 'custom':
+        await UserData.adults_custom.set()
+        await message.answer('7. Введите количество взрослых персон',
+                             reply_markup=adults)

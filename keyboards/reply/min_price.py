@@ -3,14 +3,15 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from states.data import UserData
 
 
-async def set_min_price(message: Message) -> None:
+async def set_min_price(message: Message, function: str) -> None:
     """
 
     Функция, создающая 6 reply-кнопок: 5 из них содержат
     вариант уже написанной минимальной цены, последняя
     дает пользователю ввести свою минимальную цену.
 
-    :param message: (Message) сообщение, с которым работает данная функция.
+    :param message: (Message) сообщение, с которым работает данная функция;
+    :param function: (str) функция, выбранная пользователем.
     :return: None
 
     """
@@ -23,6 +24,10 @@ async def set_min_price(message: Message) -> None:
     btn6 = KeyboardButton('Свой вариант')
     min_price.add(btn1).insert(btn2).insert(btn3).insert(btn4).insert(btn5)
     min_price.add(btn6)
-    await UserData.min_price.set()
-    await message.answer('8. Укажите минимальную цену поиска (руб.)',
-                         reply_markup=min_price)
+
+    if function == 'low':
+        await message.answer('8. Укажите минимальную цену поиска (руб.)',
+                             reply_markup=min_price)
+    elif function == 'custom':
+        await message.answer('9. Укажите минимальную цену поиска (руб.)',
+                             reply_markup=min_price)

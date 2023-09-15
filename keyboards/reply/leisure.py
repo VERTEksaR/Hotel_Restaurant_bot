@@ -3,7 +3,7 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from states.data import UserData
 
 
-async def leisure(message: Message) -> None:
+async def leisure(message: Message, function: str) -> None:
     """
 
     Функция, генерирующая 2 reply-кнопки, указывающие
@@ -11,7 +11,8 @@ async def leisure(message: Message) -> None:
     ресторане. Устанавливает состояние дял параметра choice,
     записывающий выбор пользователя.
 
-    :param message: (Message) сообщение, с которым работает данная функция.
+    :param message: (Message) сообщение, с которым работает данная функция;
+    :param function: (str) функция, выбранная пользователем.
     :return: None
 
     """
@@ -19,6 +20,13 @@ async def leisure(message: Message) -> None:
     btn1 = KeyboardButton('🏨 Отель')
     btn2 = KeyboardButton('🍽️ Ресторан')
     choice.add(btn1, btn2)
-    await UserData.choice.set()
+
+    if function == 'low':
+        await UserData.choice_low.set()
+    elif function == 'high':
+        await UserData.choice_high.set()
+    elif function == 'custom':
+        await UserData.choice_custom.set()
+
     await message.answer('2. Вы ищете Отель или Ресторан',
                          reply_markup=choice)
