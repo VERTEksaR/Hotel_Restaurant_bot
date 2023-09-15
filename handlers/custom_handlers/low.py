@@ -273,6 +273,7 @@ async def check_max_price(message: Message, state: FSMContext) -> None:
                 data['max_price_low'], data['min_price_low'] = int(data['min_price_low']) + 10000, message.text
             else:
                 data['max_price_low'] = message.text
+
         await number_of_hotels.set_num_of_hotels(message, 'low')
 
 
@@ -297,11 +298,13 @@ async def correct_max_price(message: Message, state: FSMContext) -> None:
             maxim_price = 20000
         logger.info('Пользователь ввел максимальную цену')
         async with state.proxy() as data:
+
             if int(data['min_price_low']) >= maxim_price:
                 data['max_price_low'], data['min_price_low'] = int(data['min_price_low']) + 10000, maxim_price
             else:
                 data['max_price_low'] = maxim_price
             await number_of_hotels.set_num_of_hotels(message, 'low')
+            
     except Exception:
         logger.error('Цена не является целым числом')
         await UserData.correct_max_price_low.set()
