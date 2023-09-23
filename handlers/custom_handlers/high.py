@@ -7,7 +7,7 @@ from loguru import logger
 from database.models import db, User, Choice
 from loader import dp
 from states.data import UserData
-from utils.misc import city_id, geo_cords
+from utils.misc import city_id, geo_cords, name_of_city
 from utils import searching_hotels, searching_restaurants
 from keyboards.reply import leisure, rooms, adults, kids, number_of_hotels, number_of_photo
 from keyboards.reply import confirm_all_data, size_group, number_or_restaurants, number_of_rest_photos
@@ -47,9 +47,10 @@ async def set_name_city(message: Message, state: FSMContext) -> None:
 
     """
     logger.info(f'Пользователь ввел название города - {message.text}')
+    city_name = await name_of_city.name_of_city(message)
     async with state.proxy() as data:
-        data['name_of_city_high'] = message.text
-    id_of_city = await city_id.get_city_id(data['name_of_city_high'], message)
+        data['name_of_city_high'] = city_name
+    id_of_city = await city_id.get_city_id(data['name_of_city_high'])
 
     if id_of_city:
         logger.info('Обнаружен id города')

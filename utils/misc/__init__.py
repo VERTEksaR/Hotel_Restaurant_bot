@@ -1,4 +1,5 @@
 from . import city_id
+from . import name_of_city
 from . import geo_cords
 from . import distribution_people
 from . import get_hotels

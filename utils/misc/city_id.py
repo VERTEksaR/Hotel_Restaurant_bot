@@ -2,7 +2,6 @@ from typing import Union
 
 import requests
 import json
-from aiogram.types import Message
 
 from config_data.config import RAPID_API_KEY
 
@@ -15,7 +14,7 @@ headers = {
 }
 
 
-async def get_city_id(city_name: str, message: Message) -> Union[bool, int]:
+async def get_city_id(city_name: str) -> Union[bool, int]:
     """
 
     Функция, обращающаяся к сайту и проверяющая наличие id города,
@@ -23,7 +22,6 @@ async def get_city_id(city_name: str, message: Message) -> Union[bool, int]:
     в обратном случае возвращает False.
 
     :param city_name: (str) название города;
-    :param message: (Message) сообщение, с которым работает данная функция.
     :return: False - если id города в json-объекте найдено не было, в
     противном случае его id (int).
 
@@ -41,7 +39,7 @@ async def get_city_id(city_name: str, message: Message) -> Union[bool, int]:
                 if 'buCategory' in data['data']['Typeahead_autocomplete']['results'][count]:
                     count += 1
                 else:
-                    if common_path[count]['detailsV2']['names']['name'] == message.text:
+                    if common_path[count]['detailsV2']['names']['name'] == city_name:
                         return common_path[count]['detailsV2']['locationId']
                     else:
                         count += 1
