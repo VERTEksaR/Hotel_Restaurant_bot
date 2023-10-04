@@ -61,7 +61,6 @@ async def year_callback(callback: CallbackQuery, state: FSMContext) -> None:
     :return:None
 
     """
-    global current_year
     if callback.data == 'btn1':
         async with state.proxy() as data:
             choice = data['choice_low']
@@ -95,7 +94,6 @@ async def year_callback(callback: CallbackQuery, state: FSMContext) -> None:
     :return:None
 
     """
-    global current_year
     if callback.data == 'btn1':
         async with state.proxy() as data:
             choice = data['choice_high']
@@ -129,7 +127,6 @@ async def year_callback(callback: CallbackQuery, state: FSMContext) -> None:
     :return:None
 
     """
-    global current_year
     if callback.data == 'btn1':
         async with state.proxy() as data:
             choice = data['choice_custom']
@@ -163,7 +160,6 @@ async def year_callback(callback: CallbackQuery, state: FSMContext) -> None:
     :return:None
 
     """
-    global current_year
     if callback.data == 'btn1':
         async with state.proxy() as data:
             choice = data['choice_low']
@@ -197,7 +193,6 @@ async def year_callback(callback: CallbackQuery, state: FSMContext) -> None:
     :return:None
 
     """
-    global current_year
     if callback.data == 'btn1':
         async with state.proxy() as data:
             choice = data['choice_high']
@@ -231,7 +226,6 @@ async def year_callback(callback: CallbackQuery, state: FSMContext) -> None:
     :return:None
 
     """
-    global current_year
     if callback.data == 'btn1':
         async with state.proxy() as data:
             choice = data['choice_custom']
