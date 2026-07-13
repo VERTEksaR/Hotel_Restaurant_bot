@@ -1,60 +1,27 @@
-# Телеграм-бот: поиск отелей и ресторанов
-## Описание бота
+# Telegram Bot: Hotel & Restaurant Search
 
-Разработанный телеграм-бот позволяет пользователю производить поиск
-отелей и ресторанов в большинстве городов мира! 
+## Overview
 
-Вся информация, которая будет выводиться пользователю в чат берется
-исключительно с сайта [tripadvisor](https://www.tripadvisor.ru/).
+A Telegram bot that lets users search for hotels and restaurants in cities worldwide. All data is retrieved via the TripAdvisor API (through RapidAPI).
 
-## Установка
+Built with `aiogram`, using a finite state machine (FSM) to manage multi-step user interactions, with persistent request history stored in a database.
 
-1) Сначала вам понадобиться token бота. Если у вас его нет, то нужно
-его получить у [BotFather](https://telegram.me/BotFather).
-2) На сайте [rapidapi](https://rapidapi.com/hub) необходимо 
-зарегистрировать новый аккаунт (или войти в существующий) и 
-вбить в поисковую строку `Travel Advisor`. Затем нажимаете на вкладку
-`Pricing` и выбираете тот план, который подходит для вас.
-3) Для того, чтобы узнать свой API-ключ, вам необходимо нажат на вкладку
-`Apps`, что слева от вашего профиля, затем `My Apps` и иконку щита с галочкой
-под надписью `Authorization`.
-4) В файл [.env.template](.env.template) ваv необходимо будет вставить токен,
-полученный вами от BotFather, а также API-ключ.
+## Setup
 
-## Функционал
+1. Get a bot token from [BotFather](https://telegram.me/BotFather).
+2. Register on [RapidAPI](https://rapidapi.com/hub), search for `Travel Advisor`, and subscribe to a pricing plan.
+3. Retrieve your API key from the RapidAPI dashboard (`Apps` → `My Apps` → Authorization).
+4. Add your bot token and API key to `.env.template`.
 
-- ### Команда `/start`
-Для запуска бота в первый раз следует использовать данную команду.
+## Features
 
-- ### Команда `/help`
-При вводе данной команды пользователю высвечиваются 
-все команды, которые поддерживает бот.
+- `/start` — initialize the bot
+- `/help` — list all available commands
+- `/low` — search results sorted by lowest price (hotels) or budget-friendly cuisine (restaurants)
+- `/high` — search results sorted by popularity (hotels) or high-end cuisine (restaurants)
+- `/custom` — user-defined sorting criteria
+- `/history` — view the last 10 search requests
 
-- ### Команда `/low`
-Данная команда отвечает за вывод результатов поиска,
-ссылаясь на данные, указанные пользователем. В данной команде сортировка
-производится по следующему правилу: если пользователь ищет `отель`, то
-сортировка результатов происходит от минимальной к максимальной цене;
-если `ресторан`, то по дешевой кухне (`$`).
+## Tech Stack
 
-- ### Команда `/high`
-Аналогична команде `/low` с 1 исключением: `отели` сортируются
-по популярности, `рестораны` по высокой кухне (`$$$$`).
-
-- ### Команда `/custom`
-Если в командах выше уже были включены определенные
-правила для сортировки результатов, то в этой пользователь сам
-решает, по каким критериям будет проходить сортировка результатов.
-
-- ### Команда `/history`
-Данная команда отвечает за вывод истории запросов пользователя 
-(последние 10 запросов).
-
-## Дополнительный функционал
-
-- ### Команда `/hello_world`
-При вводе данной команды бот поздоровается с миром :)
-
-- ### Функция `echo`
-Если пользователь введет слово или фразу вне выполнения какой-либо
-команды, ему вернется его же сообщение.
+Python · aiogram · RapidAPI (TripAdvisor) · FSM (Finite State Machine)
